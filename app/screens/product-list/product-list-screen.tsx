@@ -57,7 +57,7 @@ export const ProductListScreen = observer(function ProductListScreen() {
 
   function Insider({ item, index }) {
     return (
-      <View style={{ width: '50%', height: 400, paddingHorizontal: 5 }}>
+      <View style={{ width: '50%', height: 400, paddingHorizontal: 5, marginTop: 10 }}>
         <TouchableOpacity
           onPress={() => {
             navigation.navigate('productdetail', { item })
@@ -68,19 +68,22 @@ export const ProductListScreen = observer(function ProductListScreen() {
               source={{ uri: item.img }}
               resizeMode='contain'
               style={{ width: '100%', height: 300 }} >
-              <View style={VIEW}>
-                <Image
-                  resizeMode='contain'
-                  source={require('../../../assets/images/discount_tag_p.png')}
-                  style={{ width: 60, height: 35 }} />
-                <Text style={{ position: 'absolute', color: '#fff' }}>{item.offer}</Text>
-              </View>
+              {(item.offer) && (
+                <View style={VIEW}>
+                  <Image
+                    resizeMode='contain'
+                    source={require('../../../assets/images/discount_tag_p.png')}
+                    style={{ width: 60, height: 35 }} />
+                  <Text style={{ position: 'absolute', color: '#fff' }}>{item.offer}</Text>
+                </View>
+              )}
             </ImageBackground>
           </View>
           <View>
             <Text style={[TEXT, { textDecorationLine: 'underline' }]}>{item.brand_name}</Text>
             <Text style={TEXT} numberOfLines={3}>{item.name}</Text>
-            <Text style={TEXT}>₹ {item.price}</Text>
+            <Text style={[TEXT, { color: item.offer != undefined ? 'grey' : 'black' }]}>₹ {item.price}</Text>
+            {item.offer != undefined && countPrice(item.offer, item.price)}
           </View>
 
         </TouchableOpacity>
@@ -94,9 +97,31 @@ export const ProductListScreen = observer(function ProductListScreen() {
   const SCROLL = HEADER_HEIGHT - HEADER_LOW
   const refRBSheet: any = useRef();
 
+
+  function countPrice(data: string, price: string) {
+    let phoneNumberLength = data == undefined ? 0 : data.length
+    var str = []
+    for (var i = 0; i < phoneNumberLength; i++) {
+      if (data[i] != '%') {
+        str.push(data[i])
+      } else {
+        break;
+      }
+    }
+    var ans = str.join('')
+    var number = parseInt(ans, 10);
+    var pricefinal = parseInt(price, 10)
+    var pre = (pricefinal * (100 - number)) / 100;//Number((pricefinal - pre).toFixed(1))
+    return (
+      <Text>-{Number((pricefinal - pre).toFixed(0))} {'\n'}₹ {Number((pre).toFixed(0))}</Text>
+    )
+  }
   function OwnComponent() {
     return (
       <View>
+        <View style={{ height: 50, backgroundColor: 'transparent' }}>
+
+        </View>
         <View style={{ height: 50 }}>
           <TouchableOpacity onPress={() => {
             let array = [...shopStore.listB]
@@ -204,7 +229,7 @@ export const ProductListScreen = observer(function ProductListScreen() {
         </View>
       </Modal> */}
       <RBSheet
-        height={100}
+        height={200}
         closeOnPressBack={true}
         ref={refRBSheet}
         closeOnPressMask={true}
@@ -214,10 +239,9 @@ export const ProductListScreen = observer(function ProductListScreen() {
             alignItems: "center"
           },
           wrapper: {
-            backgroundColor: "backgroundColor: 'rgba(52, 52, 52, 0.8)"
+            backgroundColor: 'rgba(52, 52, 52, 0.8)'
           },
         }}
-
       >
         <OwnComponent />
       </RBSheet>

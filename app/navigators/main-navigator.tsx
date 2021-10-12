@@ -4,17 +4,17 @@
  *
  * You'll likely spend most of your time in this file.
  */
-import React, { useState, useEffect } from "react"
-import { BagScreen, AcountScreen, BrandScreen, CategoryScreen, HomeScreen, AddressScreen, ProductDetailScreen, SearchScreen } from "../screens"
+import React, { useEffect } from "react"
+import { BagScreen, AcountScreen, BrandScreen, CategoryScreen, HomeScreen, AddressScreen, ProductDetailScreen, SearchScreen, LoginScreen, AddAddressScreen } from "../screens"
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs"
 import { createDrawerNavigator } from "@react-navigation/drawer";
-import { useNavigation, CommonActions, NavigationAction } from '@react-navigation/native';
-import { AppState } from "react-native";
-import { createStackNavigator } from "@react-navigation/stack";
+import { useNavigation, CommonActions } from '@react-navigation/native';
 import { createNativeStackNavigator } from "react-native-screens/native-stack"
 import { ProductListScreen } from "../screens/product-list/product-list-screen";
 import { ImageDetailScreen } from "../screens/image-detail/image-detail-screen";
-import { MyTab } from "../components";
+import { MyDrawer, MyTab } from "../components";
+import { useStores } from "../models";
+import { Text } from "react-native";
 
 /**
  * This type allows TypeScript to know what routes are defined in this navigator
@@ -50,6 +50,10 @@ export type PrimaryParamList = {
   extra: undefined
   imagedetail: undefined
   tabs: undefined
+  auth: undefined
+  login: undefined
+  addaddress: undefined
+  addressstack: undefined
 }
 
 // Documentation: https://reactnavigation.org/docs/stack-navigator/
@@ -59,29 +63,47 @@ const Drawer = createDrawerNavigator<PrimaryParamList>()
 
 export function MainNavigator() {
   const navigation = useNavigation()
+  const { authStore } = useStores()
   useEffect(() => {
-    navigation.dispatch(
-      CommonActions.reset({
-        index: 1,
-        routes: [
-          {
-            name: 'tab',
-          },
-        ],
-      })
-    )
-  }, [])
+    if (authStore.isLogin) {
+      navigation.dispatch(
+        CommonActions.navigate({
+          name: 'home'
+        })
+      )
+    } else {
+      navigation.dispatch(
+        CommonActions.navigate({
+          name: 'auth'
+        })
+      )
+    }
+  }, [authStore.isLogin])
   return (
     <Stack.Navigator
       screenOptions={{
         headerShown: false,
       }}
     >
+      <Stack.Screen name='auth' component={AuthStack} />
       <Stack.Screen name="main" component={MainStack} />
     </Stack.Navigator>
   )
 }
+function AuthStack() {
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+      }}
+    >
+      <Stack.Screen name='login' component={LoginScreen} />
+    </Stack.Navigator>
+  )
+}
 function MainStack({ route }) {
+  const { authStore } = useStores()
+  const navigation = useNavigation()
   return (
     <Drawer.Navigator
       drawerStyle={{
@@ -92,28 +114,38 @@ function MainStack({ route }) {
         activeBackgroundColor: '#f0ceeb',
         inactiveTintColor: 'grey',
       }}
+      //screenOptions={{ swipeEnabled: false }}
       initialRouteName={'tab'}
-    //drawerContent={(props) => <CustomDrawer {...props} />}>
+      drawerContent={(props) => <MyDrawer
+        onLogout={() => {
+          authStore.onLogout()
+          navigation.reset({
+            index: 1,
+            routes: [{ name: 'auth' }]
+          })
+        }}
+        {...props} />}
     >
-      <Drawer.Screen name='drawers' component={DrawerStack} options={{ title: 'Home' }} />
+
+      <Drawer.Screen name='tab' component={TabStack} options={{ title: 'Home' }} />
     </ Drawer.Navigator>
   )
 }
-function DrawerStack() {
-  return (
-    <Stack.Navigator
-      screenOptions={{
-        headerShown: false,
-      }}
-    >
-      <Stack.Screen name='tab' component={TabStack} options={{ title: 'Home' }} />
-      <Stack.Screen name='productlist' component={ProductListScreen} options={{ title: 'Products' }} />
-      <Stack.Screen name='category' component={CategoryScreen} options={{ title: 'Categories' }} />
-      <Stack.Screen name='address' component={AddressScreen} options={{ title: 'Address' }} />
-      <Stack.Screen name='account' component={AcountScreen} options={{ title: 'Account' }} />
-    </Stack.Navigator>
-  )
-}
+// function DrawerStack() {
+//   return (
+//     <Stack.Navigator
+//       screenOptions={{
+//         headerShown: false,
+//       }}
+//     >
+//       <Stack.Screen name='tab' component={TabStack} options={{ title: 'Home' }} />
+//       <Stack.Screen name='productlist' component={ProductListScreen} options={{ title: 'Products' }} />
+//       <Stack.Screen name='category' component={CategoryScreen} options={{ title: 'Categories' }} />
+//       <Stack.Screen name='address' component={AddressScreen} options={{ title: 'Address' }} />
+//       <Stack.Screen name='account' component={AcountScreen} options={{ title: 'Account' }} />
+//     </Stack.Navigator>
+//   )
+// }
 function TabStack() {
   const navigation = useNavigation()
   const state = navigation.dangerouslyGetState();
@@ -121,13 +153,14 @@ function TabStack() {
   while (actualRoute.state) {
     actualRoute = actualRoute.state.routes[actualRoute.state.index];
   }
-
+  const { shopStore } = useStores()
   function checker(props) {
     var path = actualRoute.name;
     if (path != 'home' && path != 'tab' && path != 'drawers') {
       return null;
     } else {
       return <MyTab {...props}
+        length={shopStore.bags.length}
         onNavi={(data) => navigation.navigate(data)}
       />
     }
@@ -152,16 +185,9 @@ function TabStack() {
     //   },
     // }}
     >
-      <Tab.Screen name='extra' component={Extra} />
+      <Tab.Screen name='tabs' component={Tabs} />
 
     </Tab.Navigator>
-  )
-}
-function Extra() {
-  return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name='tabs' component={Tabs} />
-    </Stack.Navigator>
   )
 }
 
@@ -187,6 +213,18 @@ function Tabs() {
       <Stack.Screen name='bag' component={BagScreen} />
       <Stack.Screen name='search' component={SearchScreen} />
       <Stack.Screen name='imagedetail' component={ImageDetailScreen} />
+      <Stack.Screen name='addressstack' component={AddressStack} />
+    </Stack.Navigator>
+  )
+}
+function AddressStack() {
+  return (
+    <Stack.Navigator
+      initialRouteName={'address'}
+      screenOptions={{ headerShown: false }}
+    >
+      <Stack.Screen name='address' component={AddressScreen} />
+      <Stack.Screen name='addaddress' component={AddAddressScreen} />
     </Stack.Navigator>
   )
 }

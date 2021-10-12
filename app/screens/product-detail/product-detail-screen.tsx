@@ -1,13 +1,13 @@
 import React from "react"
 import { observer } from "mobx-react-lite"
-import { ViewStyle, View, Text, ScrollView, Image, TouchableOpacity, Dimensions, TextStyle, StyleSheet } from "react-native"
+import { ViewStyle, View, Text, ScrollView, TouchableOpacity, Dimensions, TextStyle, StyleSheet, Alert } from "react-native"
 import { useNavigation, useRoute, useIsFocused } from "@react-navigation/native"
 import { useStores } from "../../models"
-import { color, typography } from "../../theme"
+import { typography } from "../../theme"
 import { Header } from "../../components"
 import { SliderBox } from "react-native-image-slider-box";
 import { HEIGHT } from "../../theme/scale"
-
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
 const ROOT: ViewStyle = {
   backgroundColor: '#fff',
   flex: 1,
@@ -31,8 +31,8 @@ export const ProductDetailScreen = observer(function ProductDetailScreen() {
     "https://source.unsplash.com/1024x768/?girl",
     "https://source.unsplash.com/1024x768/?tree",
   ]
-  const [ind, setInd] = React.useState(null)
   const [first, setFirst] = React.useState(0)
+  const [selected, setSelected] = React.useState<number>(0)
   const isFocused = useIsFocused()
   React.useEffect(() => {
     if (isFocused) {
@@ -43,10 +43,10 @@ export const ProductDetailScreen = observer(function ProductDetailScreen() {
   function Sizes() {
     return (
       <View style={{ flexDirection: 'row', marginTop: 10 }}>
-        {obj.sizes.map((item, index) => {
+        {obj.sizes.map((item: {}, index) => {
           return (
-            <TouchableOpacity key={index} onPress={() => setInd(index)}>
-              <View elevation={1} style={[styles.sizeview, { backgroundColor: ind == index ? obj.bgColor : '#fff' }]}>
+            <TouchableOpacity key={index} onPress={() => setSelected(item)}>
+              <View elevation={1} style={[styles.sizeview, { backgroundColor: selected == item ? obj.bgColor : '#fff' }]}>
                 <Text>{item}</Text>
               </View>
             </TouchableOpacity>
@@ -56,11 +56,118 @@ export const ProductDetailScreen = observer(function ProductDetailScreen() {
     )
   }
   console.log(obj)
+  function addDays(theDate: Date, days: number) {
+    return new Date(theDate.getTime() + days * 24 * 60 * 60 * 1000);
+  }
+
+  var newDate = addDays(new Date(), 5);
+
+  function AddIt() {
+    shopStore.addToBag(obj, selected, newDate)
+    setSelected(0)
+    Alert.alert(
+      'Added to Bag',
+      `${obj.name}...size-${selected}`,
+    )
+  }
+
+  function onBag() {
+    if (selected == 0) {
+      Alert.alert('Select a size')
+    } else {
+      AddIt()
+      // var count = 0;
+      // shopStore.bags.forEach(item => {
+      //   if (item.name == obj.name && item.size == selected) {
+      //     count++;
+      //   }
+      // })
+      // if (count == 0 && shopStore.bags.length == 0) {
+      //   AddIt()
+      // } else {
+      //   if (shopStore.bags.length == 1 && count == 0) {
+      //     var ind = shopStore.bags.findIndex(z => (z.name == obj.name && z.price == obj.price))
+      //     if (ind != -1) {
+      //       Alert.alert(
+      //         'Its there in ur Bag!',
+      //         `But with size-${shopStore.bags[ind].size},still want to add?`,
+      //         [
+      //           {
+      //             text: "Cancel",
+      //             onPress: () => console.log("Cancel Pressed"),
+      //             style: "cancel"
+      //           },
+      //           {
+      //             text: 'Update size',
+      //             onPress: () => { shopStore.updateBag(obj, selected) }
+      //           },
+      //           {
+      //             text: 'Add',
+      //             onPress: () => { AddIt() }
+      //           }
+      //         ]
+      //       )
+      //     } else {
+      //       AddIt()
+      //     }
+      //   } else {
+      //     var sum = 0;
+      //     shopStore.bags.forEach(item => {
+      //       if (item.name == obj.name && item.price == obj.price && item.size == selected) {
+      //         sum++;
+      //       }
+      //     })
+      //     if (sum >= 1) {
+      //       Alert.alert(
+      //         `Its there in ur Bag!`,
+      //         `with same size,still want to add?`,
+      //         [
+      //           {
+      //             text: "Cancel",
+      //             onPress: () => console.log("Cancel Pressed"),
+      //             style: "cancel"
+      //           },
+      //           {
+      //             text: 'Add',
+      //             onPress: () => { AddIt() }
+      //           }
+      //         ]
+      //       )
+      //     } else {
+      //       if (sum == 0) {
+      //         Alert.alert(
+      //           'Its there in ur Bag!',
+      //           `with different size,still want to add?`,
+      //           [
+      //             {
+      //               text: "Cancel",
+      //               onPress: () => console.log("Cancel Pressed"),
+      //               style: "cancel"
+      //             },
+      //             {
+      //               text: 'Add',
+      //               onPress: () => { AddIt() }
+      //             },
+      //             {
+      //               text: 'Check Bag',
+      //               onPress: () => { navigation.navigate('bag') }
+      //             }
+      //           ]
+      //         )
+      //       } else {
+
+      //       }
+      //     }
+
+      //   }
+      // }
+    }
+  }
   function BOTTOM() {
     return (
       <View style={{ flexDirection: 'row', position: 'absolute', bottom: 0 }}>
         <View style={[styles.bottom, { backgroundColor: '#fff' }]}>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={onBag}>
             <Text style={TEXT}>ADD TO BAG</Text>
           </TouchableOpacity>
         </View>
@@ -71,6 +178,22 @@ export const ProductDetailScreen = observer(function ProductDetailScreen() {
         </View>
       </View>
     )
+  }
+  function onLike() {
+    var isThere = shopStore.favs.findIndex(x => (x.name == obj.name && x.price == obj.price))
+    if (isThere == -1) {
+      shopStore.addToFav(obj)
+    } else {
+      shopStore.removeFromFav(isThere)
+    }
+  }
+  function getIcon(text: string) {
+    var isThere = shopStore.favs.findIndex(x => (x.name == obj.name && x.price == obj.price))
+    if (isThere == -1) {
+      return text == 'name' ? 'thumbs-o-up' : 'black'
+    } else {
+      return text == 'color' ? 'blue' : 'thumbs-up'
+    }
   }
   return (
     <View style={ROOT}>
@@ -104,7 +227,7 @@ export const ProductDetailScreen = observer(function ProductDetailScreen() {
         <View style={styles.main}>
           <Text numberOfLines={6} style={[TEXT, { width: '65%' }]}>{obj.name}</Text>
           <View style={{ position: 'absolute', right: 10 }}>
-            <Text style={TEXT}>₹ {obj.price}</Text>
+            <Text style={TEXT}>₹ {obj.price[0] == '$' ? obj.price.substr(1) : obj.price}</Text>
           </View>
         </View>
         <View style={styles.main}>
@@ -119,6 +242,18 @@ export const ProductDetailScreen = observer(function ProductDetailScreen() {
         </View>
       </ScrollView>
       <BOTTOM />
+      <View
+        elevation={10}
+        style={{
+          position: 'absolute', right: 10, top: HEIGHT(70),
+        }}>
+        <FontAwesome
+          name={getIcon('name')}
+          color={getIcon('color')}
+          size={30}
+          onPress={onLike}
+        />
+      </View>
     </View>
   )
 })

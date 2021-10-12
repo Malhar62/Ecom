@@ -23,13 +23,10 @@ export const HomeScreen = observer(function HomeScreen() {
   const [load, setLoad] = React.useState(false)
   React.useEffect(() => {
     if (isFocused) {
-
-      Calling()
+      shopStore.getOver()
+      shopStore.gettingOver()
     }
   }, [isFocused])
-  // shopStore.getOver()
-  // shopStore.gettingOver()
-
   async function Calling() {
     setLoad(true)
     // helpers.helper1()
@@ -53,6 +50,7 @@ export const HomeScreen = observer(function HomeScreen() {
     navigation.navigate('productdetail', { item })
   }
   //console.log(list2[0])
+
   return (
     <View style={ROOT}>
       <HomeHeader
@@ -84,7 +82,7 @@ export const HomeScreen = observer(function HomeScreen() {
                           </View>
                           <View style={{ position: 'absolute', bottom: 5 }}>
                             <Text numberOfLines={3} style={{ fontSize: 18, color: '#fff', fontFamily: typography.kobani }}>{item.name}</Text>
-                            <Text style={{ fontSize: 18, color: '#fff', fontFamily: typography.kobani }}>{item.price}</Text>
+                            <Text style={{ fontSize: 18, color: '#fff', fontFamily: typography.kobani }}>₹{item.price.substr(1)}</Text>
                           </View>
                         </View>
                       </View>
