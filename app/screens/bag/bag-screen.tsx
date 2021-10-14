@@ -1,7 +1,7 @@
 import React from "react"
 import { observer } from "mobx-react-lite"
-import { ViewStyle, View, Text, ScrollView, Image, TouchableOpacity, FlatList, StyleSheet, Alert } from "react-native"
-import { Screen } from "../../components"
+import { ViewStyle, View, Text, ScrollView, Image, TouchableOpacity, FlatList, StyleSheet, Alert, Animated } from "react-native"
+import { Header, Progresser, Screen } from "../../components"
 import { useNavigation } from "@react-navigation/native"
 import { useStores } from "../../models"
 import { color, typography } from "../../theme"
@@ -10,11 +10,11 @@ import { HEIGHT, WIDTH } from "../../theme/scale"
 import Entypo from 'react-native-vector-icons/Entypo';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import BagBottom from "./bagbottom"
+import * as Progress from 'react-native-progress'
 
 const ROOT: ViewStyle = {
-  backgroundColor: '#f1f1f1',
+  backgroundColor: '#fff',
   flex: 1,
-  paddingHorizontal: 10
 }
 
 export const BagScreen = observer(function BagScreen() {
@@ -45,9 +45,9 @@ export const BagScreen = observer(function BagScreen() {
     )
   }
   function countPrice(data: string, price: string) {
-    let phoneNumberLength = data == undefined ? 0 : data.length
+    let Length = data == undefined ? 0 : data.length
     var str = []
-    for (var i = 0; i < phoneNumberLength; i++) {
+    for (var i = 0; i < Length; i++) {
       if (data[i] != '%') {
         str.push(data[i])
       } else {
@@ -65,7 +65,7 @@ export const BagScreen = observer(function BagScreen() {
 
   function Insider({ item, index }) {
     return (
-      <View style={{ paddingHorizontal: 10, backgroundColor: '#fff', marginTop: 20, paddingVertical: 10 }}>
+      <View style={styles.in}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
           <View style={{ width: '60%' }}>
             <Text numberOfLines={3} style={styles.txt}>{item.name}</Text>
@@ -120,48 +120,62 @@ export const BagScreen = observer(function BagScreen() {
       return 'green'
     }
   }
+  const length = React.useRef(new Animated.Value(0)).current;
+  const MAX = HEIGHT(80);
+  const MIN = HEIGHT(1);
+  const SCROLL = MAX - MIN;
   return (
     <Screen style={ROOT} preset="fixed">
-      <FlatList
-        data={shopStore.bags.toJSON()}
-        showsVerticalScrollIndicator={false}
-        renderItem={({ item, index }) => (
-          // <TouchableOpacity onPress={() => onClick(item)}>
-          //   <View key={index} style={styles.main}>
-          //     <View>
-          //       {(isNaN(item.img)) ?
-          //         <Image resizeMode='contain' source={{ uri: item.img }} style={homeStyles.bottomimg} />
-          //         :
-          //         <Image resizeMode='contain'
-          //           source={item.img}
-          //           style={homeStyles.bottomimg} />
-          //       }
-          //     </View>
-          //     <View style={{ width: '70%', paddingLeft: 20 }}>
-          //       <Text numberOfLines={3} style={{ fontSize: 18, fontFamily: typography.kobani }}>{item.name}</Text>
-          //       <Text style={{ fontSize: 18, fontFamily: typography.kobani }}>₹{item.price}</Text>
-          //       <Text>{item.offer}</Text>
-          //       <Text>size: {item.size}</Text>
-          //       <Adder item={item} index={index} />
-          //     </View>
-          //   </View>
-          //   <MaterialIcons
-          //     name='delete'
-          //     size={25}
-          //     style={{ position: 'absolute', right: 10, bottom: 10 }}
-          //     onPress={() => shopStore.removeFromBag(index)}
-          //   />
-          // </TouchableOpacity>
-          <Insider item={item} index={index} />
-        )}
-        keyExtractor={keyGenerator}
-        ListFooterComponent={
+      <Header
+        headerText="My Bag"
+        titleStyle={{ color: 'black' }}
+        style={{ backgroundColor: '#f1f1f1', borderBottomWidth: 1 }}
+      />
+      {(shopStore.bags.length != 0)
+        ?
+        (
+          <Progresser
+            range={0.1}
+            done={0}
+          />
+        ) : (
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+            <Text>Your Bag is Empty</Text>
+          </View>
+        )
+      }
+      <View style={{ marginTop: 0, marginHorizontal: 10 }}>
+        <FlatList
+          data={shopStore.bags.toJSON()}
+          contentContainerStyle={{ paddingBottom: 200 }}
+          onScroll={Animated.event(
+            [{ nativeEvent: { contentOffset: { y: length } } }],
+            { useNativeDriver: false }
+          )}
+          showsVerticalScrollIndicator={false}
+          renderItem={({ item, index }) => (
+            <Insider item={item} index={index} />
+          )}
+          keyExtractor={keyGenerator}
+        />
+      </View>
+      {(shopStore.bags.length != 0)
+        &&
+        <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, marginHorizontal: 10 }}>
           <BagBottom
             amount={shopStore.amount}
             afterdiscount={shopStore.discountedamount}
-          />}
-      />
-
+            length={length}
+            max={MAX}
+            min={MIN}
+            scroll={SCROLL}
+          />
+          <TouchableOpacity
+            onPress={() => navigation.navigate('checkout')}
+            style={styles.check}>
+            <Text>CHECKOUT</Text>
+          </TouchableOpacity>
+        </View>}
     </Screen>
   )
 })
@@ -178,5 +192,7 @@ const styles = StyleSheet.create({
   txt: {
     fontSize: 18, fontFamily: typography.ray
   },
-  main: { flexDirection: 'row', borderBottomColor: '#f1f1f1', borderBottomWidth: 1, paddingVertical: 5, alignItems: 'center' }
+  main: { flexDirection: 'row', borderBottomColor: '#f1f1f1', borderBottomWidth: 1, paddingVertical: 5, alignItems: 'center' },
+  in: { paddingHorizontal: 10, backgroundColor: '#d7dde0', marginTop: 20, paddingVertical: 10 },
+  check: { height: 60, backgroundColor: '#ebc231', justifyContent: 'center', alignItems: 'center' }
 })

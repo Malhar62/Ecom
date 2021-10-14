@@ -8,6 +8,8 @@ import React from "react"
 import { NavigationContainer, NavigationContainerRef } from "@react-navigation/native"
 import { createStackNavigator } from "@react-navigation/stack"
 import { MainNavigator } from "./main-navigator"
+import { Text, View, Animated } from "react-native"
+import { MessageShower } from "../components"
 
 /**
  * This type allows TypeScript to know what routes are defined in this navigator
@@ -50,6 +52,7 @@ export const RootNavigator = React.forwardRef<
   return (
     <NavigationContainer {...props} ref={ref}>
       <RootStack />
+      <MessageShower />
     </NavigationContainer>
   )
 })

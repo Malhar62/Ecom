@@ -68,6 +68,7 @@ export const AddAddressScreen = observer(function AddAddressScreen() {
   function onDone() {
     navigation.goBack()
     setVisible(false)
+    setState(obj)
   }
 
   return (

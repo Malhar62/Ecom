@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Ecom</string>
+        <string name="title">TATA CLIQ</string>
+        <string name="facebook_app_id">1596195790723125</string>
+        <string name="fb_login_protocol_scheme">fb1596195790723125</string>
+        <string name="server_client_id">1057301996228-rsitmun7mmebjb6p9cd49tikn6pm3e26.apps.googleusercontent.com</string>
 </resources>

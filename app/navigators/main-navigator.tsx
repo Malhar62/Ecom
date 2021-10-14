@@ -5,7 +5,7 @@
  * You'll likely spend most of your time in this file.
  */
 import React, { useEffect } from "react"
-import { BagScreen, AcountScreen, BrandScreen, CategoryScreen, HomeScreen, AddressScreen, ProductDetailScreen, SearchScreen, LoginScreen, AddAddressScreen } from "../screens"
+import { BagScreen, AcountScreen, BrandScreen, CategoryScreen, HomeScreen, AddressScreen, ProductDetailScreen, SearchScreen, LoginScreen, AddAddressScreen, CheckOutScreen, PaymentScreen } from "../screens"
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs"
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import { useNavigation, CommonActions } from '@react-navigation/native';
@@ -54,6 +54,8 @@ export type PrimaryParamList = {
   login: undefined
   addaddress: undefined
   addressstack: undefined
+  checkout: undefined
+  payment: undefined
 }
 
 // Documentation: https://reactnavigation.org/docs/stack-navigator/
@@ -214,6 +216,8 @@ function Tabs() {
       <Stack.Screen name='search' component={SearchScreen} />
       <Stack.Screen name='imagedetail' component={ImageDetailScreen} />
       <Stack.Screen name='addressstack' component={AddressStack} />
+      <Stack.Screen name='checkout' component={CheckOutScreen} />
+      <Stack.Screen name='payment' component={PaymentScreen} />
     </Stack.Navigator>
   )
 }

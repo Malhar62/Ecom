@@ -1,13 +1,23 @@
 import React from "react"
-import { View, Text, StyleSheet } from "react-native"
+import { View, Text, StyleSheet, Animated } from "react-native"
 import { typography } from "../../theme"
 import { HEIGHT } from "../../theme/scale"
 
 
-export default function BagBottom({ amount, afterdiscount }) {
+export default function BagBottom({ amount, afterdiscount, length, max, min, scroll }) {
     return (
-        <View style={{
-            width: '100%', paddingHorizontal: 10, backgroundColor: '#fff', marginTop: 20, borderWidth: 1
+        <Animated.View style={{
+            width: '100%',
+            paddingHorizontal: 10,
+            backgroundColor: '#fff',
+            marginTop: 20,
+            borderTopWidth: 2,
+            borderTopColor: 'grey',
+            height: length.interpolate({
+                inputRange: [0, scroll],
+                outputRange: [max, min],
+                extrapolate: 'clamp'
+            })
         }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                 <Text style={styles.txt}>{'Total Amount'.toUpperCase()}</Text>
@@ -21,7 +31,7 @@ export default function BagBottom({ amount, afterdiscount }) {
                 <Text style={styles.txt}>{'Amount To Pay'.toUpperCase()}</Text>
                 <Text style={styles.txt}>₹ {afterdiscount}</Text>
             </View>
-        </View>
+        </Animated.View>
     )
 }
 const styles = StyleSheet.create({
